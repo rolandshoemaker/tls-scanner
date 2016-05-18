@@ -105,7 +105,7 @@ func (s *scanner) processName(name string) (r result) {
 	}()
 	r.Name = name
 	// XXX: dialer/TLS config should accept all cipher suites instead of
-	// the default setto catch everything
+	// the default set to catch everything
 	conn, err := tls.DialWithDialer(
 		&net.Dialer{Timeout: s.dialerTimeout},
 		"tcp", fmt.Sprintf("%s:443", name),
@@ -234,6 +234,7 @@ func (s *scanner) writeResult(r result) error {
 func main() {
 	workers := flag.Int("workers", 1, "")
 	namesPath := flag.String("names", "names.txt", "")
+	skip := flag.Int("skip", 0, "")
 	resultsPath := flag.String("results", "results.json", "")
 	flag.Parse()
 
@@ -248,8 +249,12 @@ func main() {
 	go func() {
 		defer namesFile.Close()
 		lineReader := bufio.NewScanner(namesFile)
+		i := 1
 		for lineReader.Scan() {
-			names <- lineReader.Text()
+			if i > *skip {
+				names <- lineReader.Text()
+			}
+			i++
 		}
 		if err := lineReader.Err(); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to read names file '%s': %s\n", *namesPath, err)
