@@ -235,6 +235,7 @@ func main() {
 	workers := flag.Int("workers", 1, "")
 	namesPath := flag.String("names", "names.txt", "")
 	skip := flag.Int("skip", 0, "")
+	max := flag.Int("max", 0, "")
 	resultsPath := flag.String("results", "results.json", "")
 	flag.Parse()
 
@@ -250,9 +251,14 @@ func main() {
 		defer namesFile.Close()
 		lineReader := bufio.NewScanner(namesFile)
 		i := 1
+		a := 1
 		for lineReader.Scan() {
 			if i > *skip {
 				names <- lineReader.Text()
+				a++
+				if *max > 0 && a >= *max {
+					break
+				}
 			}
 			i++
 		}
